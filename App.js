@@ -2,17 +2,23 @@ import React, { useState } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import Button from "./components/Button";
 import ImageViewer from "./components/ImageViewer";
 import CircleButton from "./components/CircleButton";
 import IconButton from "./components/IconButton";
+import EmojiPicker from "./components/EmojiPicker";
+import EmojiList from "./components/EmojiList";
+import EmojiSticker from "./components/EmojiSticker";
 
 const PlaceholderImage = require("./assets/images/background-image.png");
 
 export default function App() {
   const [selectedImage, setSelectedImage] = useState(null);
   const [showAppOptions, setShowAppOptions] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [pickedEmoji, setPickedEmoji] = useState(null);
 
   const pickImageAsync = async () => {
     let result = await ImagePicker.launchImageLibraryAsync({
@@ -20,32 +26,42 @@ export default function App() {
       quality: 1,
     });
 
-    if (!result.canceled) {
+    if (!result.cancelled) {
+      // Correction: "cancelled" est le nom correct de la propriété
       setSelectedImage(result.assets[0].uri);
       setShowAppOptions(true);
     } else {
       alert("You did not select any image.");
     }
-    const onReset = () => {
-      setShowAppOptions(false);
-    };
+  };
 
-    const onAddSticker = () => {
-      // we will implement this later
-    };
+  const onReset = () => {
+    // Correction: déplacez ces fonctions à l'extérieur de pickImageAsync
+    setShowAppOptions(false);
+  };
 
-    const onSaveImageAsync = async () => {
-      // we will implement this later
-    };
+  const onAddSticker = () => {
+    setIsModalVisible(true);
+  };
+
+  const onSaveImageAsync = async () => {
+    // Nous mettrons en œuvre cela plus tard
+  };
+
+  const onModalClose = () => {
+    setIsModalVisible(false);
   };
 
   return (
-    <View style={styles.container}>
+    <GestureHandlerRootView style={styles.container}>
       <View style={styles.imageContainer}>
         <ImageViewer
           placeholderImageSource={PlaceholderImage}
           selectedImage={selectedImage}
         />
+        {pickedEmoji && (
+          <EmojiSticker imageSize={40} stickerSource={pickedEmoji} />
+        )}
       </View>
       {showAppOptions ? (
         <View style={styles.optionsContainer}>
@@ -72,8 +88,11 @@ export default function App() {
           />
         </View>
       )}
+      <EmojiPicker isVisible={isModalVisible} onClose={onModalClose}>
+        <EmojiList onSelect={setPickedEmoji} onCloseModal={onModalClose} />
+      </EmojiPicker>
       <StatusBar style="auto" />
-    </View>
+    </GestureHandlerRootView>
   );
 }
 
